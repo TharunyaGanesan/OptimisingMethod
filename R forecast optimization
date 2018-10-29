@@ -1,0 +1,173 @@
+library(readr)
+library(fpp)
+newark_atmp <- read_csv("newark_atmp.csv")
+View(newark_atmp)
+temp_ts <- ts(newark_atmp$AvgTemp,start = c(2010,4),frequency = 12)
+View(temp_ts)
+# Plot and Inference
+# â¢	Show a time series plot. 
+plot(temp_ts)
+# â¢	Please summaries your observations of the times series plot
+# Central Tendency
+# â¢	What are the min, max, mean, median, 1st and 3rd Quartile values of the times series? 
+summary(temp_ts)
+# â¢	Show the box plot.  
+boxplot(temp_ts, col=("darkgreen"), main="NJ TEMPERATURE", ylab="Average Recorded Temperature")
+# â¢	Can you summarize your observation about the time series from the summary stats and box plot? 
+
+
+# Decomposition
+# 
+# â¢	Plot the decomposition of the time series.
+stl_decomp <- stl(temp_ts,s.window ="periodic")
+plot(stl_decomp)
+# â¢	Is the times series seasonal?
+# â¢	Is the decomposition additive or multiplicative? 
+# â¢	If seasonal, what are the values of the seasonal monthly indices? 
+seasadj(stl_decomp)
+# â¢	For which month is the value of time series high and for which month is it low? 
+# â¢	Can you think of the reason behind the value being high in those months and low in those months?
+# Show the plot for time series adjusted for seasonality. Overlay this with the line for actual time series
+plot(seasadj(stl_decomp), col= 'blue')
+lines(temp_ts, col = 'purple')
+
+
+# NaÃ¯ve Method
+# â¢	Output
+naive_forecast <- naive(temp_ts,12)
+summary(naive_forecast)
+plot(naive_forecast)
+# â¢	Perform Residual Analysis for this technique. 
+# o	Do a plot of residuals. What doses the plot indicate?
+plot(naive_forecast$residuals)
+# o	Do a Histogram plot of residuals. What does the plot indicate?
+hist(naive_forecast$residuals)
+# o	Do a plot of fitted values vs. residuals. What does the plot indicate? 
+plot(as.numeric(naive_forecast$fitted), as.numeric(naive_forecast$residuals),type="p",xlab= "Fitted",ylab="Residuals")
+abline(0,0, col = "Blue")
+# o	Do a plot of actual values vs. residuals. What does the plot indicate?
+plot(as.numeric(temp_ts), as.numeric(naive_forecast$residuals),type="p",xlab= "Actual",ylab="Residuals")
+abline(0,0, col = "Blue")
+# o	Do an ACF plot of the residuals? What does this plot indicate?
+Acf(naive_forecast$residuals)
+# â¢	Print the 5 measures of accuracy for this forecasting technique
+accuracy(naive_forecast)
+# â¢	Forecast 
+# o	Time series value for next year. Show table and plot
+naive_nextyear <- naive(temp_ts, h=12)
+plot(naive_nextyear)
+naive_nextyear
+# â¢	Summarize this forecasting technique
+summary(naive_forecast)
+# o	How good is the accuracy?
+# o	What does it predict the value of time series will be in one year?
+# o	Other observation
+
+
+# Simple Moving Averages
+# â¢	Plot the graph for time series. 
+plot(temp_ts)
+# â¢	Show the Simple Moving average of order 3 on the plot above in Red
+MA3_forecast <- ma(temp_ts,order=3)
+lines(MA3_forecast,col="Red")
+# â¢	Show the Simple Moving average of order 6 on the plot above in Blue
+MA6_forecast <- ma(temp_ts,order=6)
+lines(MA6_forecast,col="Blue")
+# â¢	Show the Simple Moving average of order 9 on the plot above in Green
+MA12_forecast <- ma(temp_ts,order=9)
+lines(MA12_forecast,col="Green")
+# â¢	(Bonus) show the forecast of next 12 months using one of the simple average order that you feel works best for time series
+
+MA3_nextyear<-plot(forecast(ma(temp_ts, order = 3), h = 12))
+MA6_nextyear<-plot(forecast(ma(temp_ts, order = 6), h = 12))
+MA9_nextyear<-plot(forecast(ma(temp_ts, order = 9), h = 12))
+
+# â¢	What are your observations of the plot as the moving average order goes up? 
+
+
+
+
+# Smoothing
+#using ses
+?ses
+ses_temp<-ets(temp_ts,alpha=NULL, beta=NULL)
+plot(ses_temp)
+
+
+# â¢	Perform a smoothing forecast for next 12 months for the time series. 
+ss_forecast <-ets(temp_ts)
+summary(ss_forecast)
+plot(ss_forecast)
+# o	What is the value of alpha?  What does that value signify? 
+# o	What is the value of initial state? 
+# o	What is the value of sigma?  What does the sigma signify?
+# â¢	Perform Residual Analysis for this technique. 
+# o	Do a plot of residuals. What does the plot indicate?
+plot(ss_forecast$residuals)
+# o	Do a Histogram plot of residuals. What does the plot indicate?
+hist(ss_forecast$residuals)
+# o	Do a plot of fitted values vs. residuals. What does the plot indicate? 
+plot(as.numeric(ss_forecast$fitted), as.numeric(ss_forecast$residuals),type="p",xlab= "Fitted",ylab="Residuals")
+abline(0,0, col = "Blue")
+# o	Do a plot of actual values vs. residuals. What does the plot indicate?
+plot(as.numeric(temp_ts), as.numeric(ss_forecast$residuals),type="p",xlab= "Actual",ylab="Residuals")
+abline(0,0, col = "Blue")
+# o	Do an ACF plot of the residuals? What does this plot indicate?
+Acf(ss_forecast$residuals)
+# â¢	Print the 5 measures of accuracy for this forecasting technique
+accuracy(ss_forecast)
+# â¢	Forecast 
+# o	Time series value for next year. Show table and plot
+ss_nextyear <- forecast(temp_ts, h=12)
+ss_nextyear
+plot(ss_nextyear)
+# â¢	Summarize this forecasting technique
+summary(ss_nextyear)
+# o	How good is the accuracy?
+# o	What does it predict the value of time series will be in one year?
+# o	Other observation
+
+
+
+# Holt-Winters 
+# â¢	Perform Holt-Winters forecast for next 12 months for the time series.
+hw_forecast = HoltWinters(temp_ts)
+hw_nextyear = forecast(hw_forecast, h = 12)
+summary(hw_nextyear)
+plot(hw_nextyear)
+plot(hw_forecast)
+# o	What is the value of alpha?  What does that value signify? 
+# o	What is the value of beta? What does that value signify?
+# o	What is the value of gamma? What does that value signify?
+# o	What is the value of initial states for the level, trend and seasonality? What do these values signify? 
+# o	What is the value of sigma?  What does the sigma signify?
+h_forecast<-holt(temp_ts,h=12)
+plot(h_forecast)
+summary(h_forecast)
+
+# â¢	Perform Residual Analysis for this technique. 
+# o	Do a plot of residuals. What does the plot indicate?
+plot(hw_nextyear$residuals, ylab = "Residuals", main = "Residual Plot for NJ Temperature Holt Winters")
+# o	Do a Histogram plot of residuals. What does the plot indicate?
+hist(hw_nextyear$residuals, xlab = "Residuals", main = "Histogram Plot of Residuals for NJ Temperature Holt Winters")
+# o	Do a plot of fitted values vs. residuals. What does the plot indicate? 
+plot(as.numeric(hw_nextyear$fitted), as.numeric(hw_nextyear$residuals), xlab = "Fitted Values", ylab = "Residuals", main = "Fitted Values vs Residual Plot")
+abline(0,0, col = "Blue")
+# o	Do a plot of actual values vs. residuals. What does the plot indicate?
+plot(as.numeric(temp_ts), as.numeric(hw_nextyear$residuals), xlab = "Actual Values", ylab = "Residuals", main = "Actual values vs Residual Plot")
+abline(0,0, col = "Blue")
+# o	Do an ACF plot of the residuals? What does this plot indicate?
+Acf(hw_nextyear$residuals, main = "ACF Plot of Residuals")
+# â¢	Print the 5 measures of accuracy for this forecasting technique
+accuracy(hw_nextyear)
+# â¢	Forecast 
+# o	Time series value for next year. Show table and plot
+hw_nextyear = forecast(hw_forecast, h = 12)
+hw_nextyear
+plot(hw_nextyear)
+# â¢	Summarize this forecasting technique
+# o	How good is the accuracy?
+summary(hw_nextyear)
+# o	What does it predict the value of time series will be in one year?
+hw_nextyear
+# o	Other observation
